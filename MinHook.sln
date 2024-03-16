@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Misc", "Misc", "{02BDF044-8
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinHook", "src\MinHook\MinHook.csproj", "{D3B5033B-80D3-44E9-845C-257F26C223F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinHook.Tests", "tests\MinHook.Tests\MinHook.Tests.csproj", "{A50E053D-412E-4F0E-B709-3F3DA676D359}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{D3B5033B-80D3-44E9-845C-257F26C223F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3B5033B-80D3-44E9-845C-257F26C223F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3B5033B-80D3-44E9-845C-257F26C223F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A50E053D-412E-4F0E-B709-3F3DA676D359}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A50E053D-412E-4F0E-B709-3F3DA676D359}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A50E053D-412E-4F0E-B709-3F3DA676D359}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A50E053D-412E-4F0E-B709-3F3DA676D359}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
