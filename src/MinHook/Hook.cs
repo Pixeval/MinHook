@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 namespace MinHook;
 public class Hook<T> where T : Delegate
 {
-    private IntPtr _target;
-    private IntPtr _original;
-    private IntPtr _detour;
+    private readonly IntPtr _target;
+    private readonly IntPtr _original;
+    private readonly IntPtr _detour;
 
     public Hook(IntPtr target, IntPtr detour)
     {
