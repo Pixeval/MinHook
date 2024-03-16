@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.Build.Traversal">
     <ItemGroup>
-        <ProjectReference Include="minhook\minhook.runtime.csproj" />
+        <ProjectReference Include="minhook\minhook.native.runtime.csproj" />
     </ItemGroup>
 </Project>
