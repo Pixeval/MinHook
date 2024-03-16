@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <CompilerMode>C</CompilerMode>
+    <DefaultSources>false</DefaultSources>
+  </PropertyGroup>
+</Project>

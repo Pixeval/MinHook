@@ -1,0 +1,18 @@
+<Project Sdk="Vezel.Zig.Sdk">
+    <PropertyGroup>
+        <OutputPath>bin\$(Configuration)\$(RuntimeIdedntifier)</OutputPath>
+        <DefineConstants Condition=" '$(RuntimeIdedntifier)' == 'win-x64' ">$(DefineConstants);_M_X64;__i386__</DefineConstants>
+        <DefineConstants Condition=" '$(RuntimeIdedntifier)' == 'win-x86' ">$(DefineConstants);_M_IX86;__x86_64__</DefineConstants>
+        <NoWarn>$(NoWarn);G56935CCE;GA203EE3F</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <IncludeDirectory Include="src/include"></IncludeDirectory>
+        <IncludeDirectory Include="src/src"></IncludeDirectory>
+        <IncludeDirectory Include="src/src/hde"></IncludeDirectory>
+        <Compile Include="src/src/hook.c"></Compile>
+        <Compile Include="src/src/buffer.c"></Compile>
+        <Compile Include="src/src/trampoline.c"></Compile>
+        <Compile Include="src/src/hde/hde64.c"></Compile>
+        <Compile Include="src/src/hde/hde32.c"></Compile>
+    </ItemGroup>
+</Project>

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IsPackable>true</IsPackable>
+        <PackageId>Pixeval.$(AssemblyName).native</PackageId>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <PackageOutputPath>..\..\..\nupkgs</PackageOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- <PackageReference Include="minhook.runtime.win-arm64" Version="*"></PackageReference> -->
+        <PackageReference Include="minhook.runtime.win-x64" Version="*"></PackageReference>
+        <PackageReference Include="minhook.runtime.win-x86" Version="*"></PackageReference>
+    </ItemGroup>
+</Project>

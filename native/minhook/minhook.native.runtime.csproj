@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.Build.NoTargets">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <PackageId>Pixeval.$(AssemblyName).native.$(RuntimeIdentifier)</PackageId>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <PackageOutputPath>..\..\nupkgs</PackageOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="bin\$(Configuration)\$(RuntimeIdentifier)\*">
+      <Link>%(Filename)%(Extension)</Link>
+      <Pack>true</Pack>
+      <PackagePath>runtimes\$(RuntimeIdentifier)\native</PackagePath>
+    </None>
+  </ItemGroup>
+</Project>

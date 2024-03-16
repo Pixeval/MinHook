@@ -1,0 +1,4 @@
+{
+    "dotnet.defaultSolution": "TreeSitterSharp.sln",
+    "cmake.configureOnOpen": false
+}
