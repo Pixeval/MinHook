@@ -62,8 +62,8 @@ jobs:
 
       - name: Do pack
         run: |
-          dotnet pack native/NativeLibrary.csproj
-          dotnet pack
+          dotnet pack native/NativeLibrary.csproj -c Release
+          dotnet pack -c Release
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3

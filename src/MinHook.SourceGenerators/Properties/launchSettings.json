@@ -1,0 +1,8 @@
+{
+    "profiles": {
+        "DebugMinHookGenerators": {
+            "commandName": "DebugRoslynComponent",
+            "targetProject": "../../tests/MinHook.Tests/MinHook.Tests.csproj"
+        }
+    }
+}

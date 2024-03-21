@@ -9,7 +9,20 @@
     <LangVersion>preview</LangVersion>
     <PackageId>Pixeval.$(AssemblyName)</PackageId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="analyzers\dotnet\cs\MinHook.SourceGenerators.dll">
+      <Link>%(FileName)%(Extension)</Link>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+      <PackagePath>analyzers/dotnet/cs</PackagePath>
+    </None>
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Pixeval.minhook.native" Version="*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MinHook.SourceGenerators\MinHook.SourceGenerators.csproj" />
   </ItemGroup>
 </Project>
