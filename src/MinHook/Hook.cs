@@ -9,8 +9,6 @@ namespace MinHook;
 
 public static class Hook
 {
-
-
     public static Hook<T> Create<T>(string moduleName, string funcName, IntPtr detour) where T : Delegate
     {
         var handle = Kernel32.GetModuleHandle(moduleName);
@@ -61,17 +59,18 @@ public class Hook<T> where T : Delegate
         {
             MinHookException.Throw(status);
         }
-        status = Native.SetThreadFreezeMethod(MhThreadFreezeMethod.NoneUnsafe);
-        if (status != MinHookStatus.Ok)
-        {
-            MinHookException.Throw(status);
-        }
+        
 
     }
 
     public void Enable()
     {
-        var status = Native.EnableHook(_target);
+        var status = Native.SetThreadFreezeMethod(MhThreadFreezeMethod.NoneUnsafe);
+        if (status != MinHookStatus.Ok)
+        {
+            MinHookException.Throw(status);
+        }
+        status = Native.EnableHook(_target);
         if (status != MinHookStatus.Ok && status != MinHookStatus.Enabled)
         {
             MinHookException.Throw(status);

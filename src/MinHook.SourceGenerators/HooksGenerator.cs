@@ -91,7 +91,7 @@ internal class HooksGenerator : IIncrementalGenerator
                         .WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))))
                     .AddBodyStatements(ExpressionStatement(InvocationExpression(
                         MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
-                            IdentifierName("Enable")))))
+                            IdentifierName("Disable")))))
                     .AddBodyStatements(IfStatement(IdentifierName("alsoDisableAllEnabledHooks"),
                         Block().AddStatements(generatorContexts.Select(generatorContext =>
                             IfStatement(
