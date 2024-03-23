@@ -20,6 +20,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="analyzers\dotnet\cs\MinHook.SourceGenerators.deps.json">
+      <Link>%(FileName)%(Extension)</Link>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+      <PackagePath>analyzers/dotnet/cs</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="analyzers\dotnet\cs\MinHook.SourceGenerators.pdb">
+      <Link>%(FileName)%(Extension)</Link>
+      <Pack>true</Pack>
+      <Visible>false</Visible>
+      <PackagePath>analyzers/dotnet/cs</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Pixeval.minhook.native" Version="*" />
   </ItemGroup>
   <ItemGroup>
