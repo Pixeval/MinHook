@@ -6,9 +6,7 @@ using System.Text;
 namespace MinHook;
 public static class Kernel32
 {
-    [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode, SetLastError = true)]
-    public delegate IntPtr GetProcAddressDelegate(IntPtr hModule, string lpProcName);
-
+    
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern IntPtr GetModuleHandle(string lpModuleName);
 

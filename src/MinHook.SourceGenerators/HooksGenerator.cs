@@ -49,171 +49,8 @@ internal class HooksGenerator : IIncrementalGenerator
                 spc.AddSource($"{generationContext.ClassDeclarationSyntax.Identifier.Text}.StaticLazyHook.g.cs",
                     StaticLazyHookCompilationUnit(generationContext).GetText(Encoding.UTF8));
             }
-
-            spc.AddSource("StaticLazyHookManager.g.cs",
-                StaticLazyHookManagerCompilationUnit(generatorContexts).GetText(Encoding.UTF8));
         }));
     }
-
-    private static CompilationUnitSyntax StaticLazyHookManagerCompilationUnit(
-        ImmutableArray<HookGeneratorContext> generatorContexts)
-    {
-        return CompilationUnit()
-            .AddMembers(FileScopedNamespaceDeclaration(IdentifierName("MinHook")))
-            .AddMembers(StaticLazyHookManagerClassDeclaration(generatorContexts))
-            .NormalizeWhitespace();
-
-        static ClassDeclarationSyntax StaticLazyHookManagerClassDeclaration(
-            ImmutableArray<HookGeneratorContext> generatorContexts)
-        {
-            return ClassDeclaration("StaticLazyHookManager")
-                .AddModifiers(Token(SyntaxKind.StaticKeyword))
-                .AddMembers(GetProcAddressDegelateDeclaration())
-                .AddMembers(HookFieldDeclaration())
-                .AddMembers(DetourMethodDeclaration(generatorContexts))
-                .AddMembers(EnableMethodDeclaration())
-                .AddMembers(DisableMethodDeclaration(generatorContexts));
-
-            static MethodDeclarationSyntax EnableMethodDeclaration()
-            {
-                return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Enable")
-                    .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
-                    .AddBodyStatements(ExpressionStatement(InvocationExpression(
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
-                            IdentifierName("Enable")))));
-            }
-
-            static MethodDeclarationSyntax DisableMethodDeclaration(ImmutableArray<HookGeneratorContext> generatorContexts)
-            {
-                return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Disable")
-                    .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
-                    .AddParameterListParameters(Parameter(Identifier("alsoDisableAllEnabledHooks"))
-                        .WithType(PredefinedType(Token(SyntaxKind.BoolKeyword))))
-                    .AddBodyStatements(ExpressionStatement(InvocationExpression(
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
-                            IdentifierName("Disable")))))
-                    .AddBodyStatements(IfStatement(IdentifierName("alsoDisableAllEnabledHooks"),
-                        Block().AddStatements(generatorContexts.Select(generatorContext =>
-                            IfStatement(
-                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName(generatorContext.TypeSymbol.ToString()), IdentifierName("Enabled")),
-                                ExpressionStatement(InvocationExpression(MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName(generatorContext.TypeSymbol.ToString()),
-                                    IdentifierName("Disable")))))).OfType<StatementSyntax>().ToArray())));
-            }
-
-            static MethodDeclarationSyntax DetourMethodDeclaration(ImmutableArray<HookGeneratorContext> generatorContexts)
-            {
-                return MethodDeclaration(IdentifierName("global::System.IntPtr"), "Detour")
-                    .AddModifiers(Token(SyntaxKind.StaticKeyword))
-                    .AddParameterListParameters(
-                        Parameter(Identifier("hModule"))
-                            .WithType(IdentifierName("global::System.IntPtr")),
-                        Parameter(Identifier("lpProcName"))
-                            .WithType(IdentifierName("global::System.IntPtr")))
-                    .AddBodyStatements(LocalDeclarationStatement(
-                        VariableDeclaration(IdentifierName("global::System.IntPtr")).AddVariables(
-                            VariableDeclarator("target").WithInitializer(EqualsValueClause(
-                                InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                        IdentifierName("_hook"), IdentifierName("Original")))
-                                    .AddArgumentListArguments(Argument(IdentifierName("hModule")),
-                                        Argument(IdentifierName("lpProcName"))))))))
-                    .AddBodyStatements(LocalDeclarationStatement(
-                        VariableDeclaration(PredefinedType(Token(SyntaxKind.StringKeyword))).AddVariables(
-                            VariableDeclarator("name").WithInitializer(EqualsValueClause(
-                                InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                        IdentifierName("global::System.Runtime.InteropServices.Marshal"), IdentifierName("PtrToStringUTF8")))
-                                    .AddArgumentListArguments(Argument(IdentifierName("lpProcName"))))))))
-                    .AddBodyStatements(SwitchStatement(IdentifierName("name")).AddSections(generatorContexts
-                        .Select(generatorContext =>
-                            SwitchSection().AddLabels(CaseSwitchLabel(LiteralExpression(
-                                    SyntaxKind.StringLiteralExpression, Literal(generatorContext.FunctionName))))
-                                .AddStatements(IfStatement(
-                                    PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
-                                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                            IdentifierName(generatorContext.TypeSymbol.ToString()),
-                                            IdentifierName("Enabled"))),
-                                    Block().AddStatements(ExpressionStatement(
-                                        InvocationExpression(MemberAccessExpression(
-                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                IdentifierName(generatorContext.TypeSymbol.ToString()),
-                                                IdentifierName("Enable")))
-                                            .AddArgumentListArguments(Argument(IdentifierName("target")))))))
-                                .AddStatements(BreakStatement()))
-                        .ToArray()))
-                    .AddBodyStatements(ReturnStatement(IdentifierName("target")));
-            }
-
-            static FieldDeclarationSyntax HookFieldDeclaration()
-            {
-                return FieldDeclaration(VariableDeclaration(GenericName("global::MinHook.Hook")
-                            .AddTypeArgumentListArguments(IdentifierName("GetProcAddressDelegate")))
-                        .AddVariables(VariableDeclarator("_hook").WithInitializer(EqualsValueClause(
-                            InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName("global::MinHook.Hook"),
-                                    GenericName("Create")
-                                        .AddTypeArgumentListArguments(IdentifierName("GetProcAddressDelegate"))))
-                                .AddArgumentListArguments(
-                                    Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
-                                        Literal("kernel32"))),
-                                    Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
-                                        Literal("GetProcAddress"))),
-                                    Argument(IdentifierName("Detour")))))))
-                    .AddModifiers(Token(SyntaxKind.StaticKeyword));
-            }
-
-            static DelegateDeclarationSyntax GetProcAddressDegelateDeclaration()
-            {
-                return DelegateDeclaration(
-                        IdentifierName("global::System.IntPtr"),
-                        Identifier("GetProcAddressDelegate"))
-                    .WithAttributeLists(
-                        SingletonList(
-                            AttributeList(
-                                SingletonSeparatedList(
-                                    Attribute(
-                                            IdentifierName("global::System.Runtime.InteropServices.UnmanagedFunctionPointer"))
-                                        .WithArgumentList(
-                                            AttributeArgumentList(
-                                                SeparatedList<AttributeArgumentSyntax>(
-                                                    new SyntaxNodeOrToken[]
-                                                    {
-                                                        AttributeArgument(
-                                                            MemberAccessExpression(
-                                                                SyntaxKind.SimpleMemberAccessExpression,
-                                                                IdentifierName(
-                                                                    "global::System.Runtime.InteropServices.CallingConvention"),
-                                                                IdentifierName("StdCall"))),
-                                                        Token(SyntaxKind.CommaToken), AttributeArgument(
-                                                                MemberAccessExpression(
-                                                                    SyntaxKind.SimpleMemberAccessExpression,
-                                                                    IdentifierName(
-                                                                        "global::System.Runtime.InteropServices.CharSet"),
-                                                                    IdentifierName("Unicode")))
-                                                            .WithNameEquals(
-                                                                NameEquals(
-                                                                    IdentifierName("CharSet"))),
-                                                        Token(SyntaxKind.CommaToken), AttributeArgument(
-                                                                LiteralExpression(
-                                                                    SyntaxKind.TrueLiteralExpression))
-                                                            .WithNameEquals(
-                                                                NameEquals(
-                                                                    IdentifierName("SetLastError")))
-                                                    })))))))
-                    .WithModifiers(
-                        TokenList(
-                            Token(SyntaxKind.PublicKeyword)))
-                    .AddParameterListParameters(
-                        Parameter(Identifier("hModule"))
-                            .WithType(IdentifierName("global::System.IntPtr")),
-                        Parameter(Identifier("lpProcName"))
-                            .WithType(IdentifierName("global::System.IntPtr")));
-            }
-        }
-    }
-
-
 
     private static CompilationUnitSyntax StaticLazyHookCompilationUnit(HookGeneratorContext generatorContext)
     {
@@ -233,6 +70,7 @@ internal class HooksGenerator : IIncrementalGenerator
                 .AddMembers(DetourMethodDeclaration(generatorContext))
                 .AddMembers(OriginalPropertyDeclaration(generatorContext))
                 .AddMembers(EnableMethodDeclaration(generatorContext))
+                .AddMembers(LazyEnableMethodDeclaration(generatorContext))
                 .AddMembers(DisableMethodDeclaration());
 
             static FieldDeclarationSyntax HookFieldDeclaration(HookGeneratorContext generatorContext)
@@ -281,21 +119,70 @@ internal class HooksGenerator : IIncrementalGenerator
             {
                 return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Enable")
                     .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
-                    .AddParameterListParameters(Parameter(Identifier("target"))
-                        .WithType(IdentifierName("global::System.IntPtr")))
-                    .AddBodyStatements(ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
-                        IdentifierName("_hook"), InvocationExpression(MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                IdentifierName("global::MinHook.Hook"),
-                                GenericName("Create")
-                                    .AddTypeArgumentListArguments(
-                                        IdentifierName(generatorContext.TargetDelegateType.Name))))
-                            .AddArgumentListArguments(
-                                Argument(IdentifierName("target")),
-                                Argument(IdentifierName("Detour"))))))
-                    .AddBodyStatements(ExpressionStatement(InvocationExpression(MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
-                        IdentifierName("Enable")))));
+                    .AddBodyStatements(IfStatement(
+                            InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    IdentifierName("global::MinHook.Hook"), IdentifierName("CheckLibraryLoaded")))
+                                .AddArgumentListArguments(Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
+                                    Literal(generatorContext.ModuleName)))), Block().AddStatements(ExpressionStatement(
+                                    AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                                        IdentifierName("_hook"), InvocationExpression(MemberAccessExpression(
+                                                SyntaxKind.SimpleMemberAccessExpression,
+                                                IdentifierName("global::MinHook.Hook"),
+                                                GenericName("Create")
+                                                    .AddTypeArgumentListArguments(
+                                                        IdentifierName(generatorContext.TargetDelegateType.Name))))
+                                            .AddArgumentListArguments(
+                                                Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
+                                                    Literal(generatorContext.ModuleName))),
+                                                Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
+                                                    Literal(generatorContext.FunctionName))),
+                                                Argument(IdentifierName("Detour"))))))
+                                .AddStatements(ExpressionStatement(InvocationExpression(MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
+                                    IdentifierName("Enable"))))))
+                        .WithElse(ElseClause(Block()
+                            .AddStatements(ExpressionStatement(AssignmentExpression(SyntaxKind.AddAssignmentExpression,
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    IdentifierName("global::MinHook.LibraryLoadingMonitor"),
+                                    IdentifierName("LibraryLoaded")), IdentifierName("LazyEnable"))))
+                            .AddStatements(IfStatement(
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    IdentifierName("global::MinHook.LibraryLoadingMonitor"), IdentifierName("Enabled")),
+                                ExpressionStatement(InvocationExpression(MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    IdentifierName("global::MinHook.LibraryLoadingMonitor"),
+                                    IdentifierName("Enable")))))))));
+            }
+
+            static MethodDeclarationSyntax LazyEnableMethodDeclaration(HookGeneratorContext generatorContext)
+            {
+                return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "LazyEnable")
+                    .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword))
+                    .AddParameterListParameters(
+                        Parameter(Identifier("sender")).WithType(PredefinedType(Token(SyntaxKind.ObjectKeyword))),
+                        Parameter(Identifier("args"))
+                            .WithType(IdentifierName("global::MinHook.LibraryLoadingMonitor.LibraryLoadedEventArgs")))
+                    .AddBodyStatements(IfStatement(
+                        InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                IdentifierName("global::MinHook.Hook"), IdentifierName("CheckLibraryLoaded")))
+                            .AddArgumentListArguments(Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
+                                Literal(generatorContext.ModuleName)))), Block().AddStatements(ExpressionStatement(
+                                AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                                    IdentifierName("_hook"), InvocationExpression(MemberAccessExpression(
+                                            SyntaxKind.SimpleMemberAccessExpression,
+                                            IdentifierName("global::MinHook.Hook"),
+                                            GenericName("Create")
+                                                .AddTypeArgumentListArguments(
+                                                    IdentifierName(generatorContext.TargetDelegateType.Name))))
+                                        .AddArgumentListArguments(
+                                            Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
+                                                Literal(generatorContext.ModuleName))),
+                                            Argument(LiteralExpression(SyntaxKind.StringLiteralExpression,
+                                                Literal(generatorContext.FunctionName))),
+                                            Argument(IdentifierName("Detour"))))))
+                            .AddStatements(ExpressionStatement(InvocationExpression(MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
+                                IdentifierName("Enable")))))));
             }
 
             static MethodDeclarationSyntax DisableMethodDeclaration()
@@ -304,7 +191,11 @@ internal class HooksGenerator : IIncrementalGenerator
                     .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
                     .AddBodyStatements(ExpressionStatement(InvocationExpression(MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
-                        IdentifierName("Disable")))));
+                        IdentifierName("Disable")))))
+                    .AddBodyStatements(ExpressionStatement(AssignmentExpression(SyntaxKind.SubtractAssignmentExpression,
+                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                            IdentifierName("global::MinHook.LibraryLoadingMonitor"),
+                            IdentifierName("LibraryLoaded")), IdentifierName("LazyEnable"))));
             }
         }
 

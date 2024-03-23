@@ -11,7 +11,7 @@ namespace MinHook.Tests;
 [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
 public delegate uint GetTickCountDelegate();
 
-[StaticLazyHook<GetTickCountDelegate>("Kernel32", "GetTickCount")]
+[StaticLazyHook<GetTickCountDelegate>("kernel32", "GetTickCount")]
 
 internal partial class TestLazyHook
 {

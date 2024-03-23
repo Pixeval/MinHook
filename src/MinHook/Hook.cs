@@ -9,10 +9,28 @@ namespace MinHook;
 
 public static class Hook
 {
+    public static bool CheckLibraryLoaded(string libraryName)
+    {
+        var handle = Kernel32.GetModuleHandle(libraryName);
+        if (handle == IntPtr.Zero)
+        {
+            return false;
+        }
+        return true;
+    }
+
     public static Hook<T> Create<T>(string moduleName, string funcName, IntPtr detour) where T : Delegate
     {
         var handle = Kernel32.GetModuleHandle(moduleName);
+        if (handle == IntPtr.Zero)
+        {
+            MinHookException.Throw(MinHookStatus.ErrorModuleNotFound);
+        }
         var target = Kernel32.GetProcAddress(handle, funcName);
+        if (target == IntPtr.Zero)
+        {
+            MinHookException.Throw(MinHookStatus.ErrorModuleNotFound);
+        }
         return new Hook<T>(target, detour);
     }
     public static Hook<T> Create<T>(string moduleName, string funcName, T detour) where T : Delegate
@@ -59,18 +77,13 @@ public class Hook<T> where T : Delegate
         {
             MinHookException.Throw(status);
         }
-        
+
 
     }
 
     public void Enable()
     {
-        var status = Native.SetThreadFreezeMethod(MhThreadFreezeMethod.FastUndocumented);
-        if (status != MinHookStatus.Ok)
-        {
-            MinHookException.Throw(status);
-        }
-        status = Native.EnableHook(_target);
+        var status = Native.EnableHook(_target);
         if (status != MinHookStatus.Ok && status != MinHookStatus.Enabled)
         {
             MinHookException.Throw(status);
