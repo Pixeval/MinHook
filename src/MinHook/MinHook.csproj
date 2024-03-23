@@ -23,6 +23,6 @@
     <PackageReference Include="Pixeval.minhook.native" Version="*" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MinHook.SourceGenerators\MinHook.SourceGenerators.csproj" />
+    <ProjectReference Include="..\MinHook.SourceGenerators\MinHook.SourceGenerators.csproj" PrivateAssets="all" />
   </ItemGroup>
 </Project>

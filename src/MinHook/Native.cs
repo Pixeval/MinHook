@@ -18,7 +18,31 @@ namespace MinHook
         ErrorMemoryAlloc = 9,
         ErrorMemoryProtect = 10,
         ErrorModuleNotFound = 11,
-        ErrorFunctionNotFound = 12
+        ErrorFunctionNotFound = 12,
+        ErrorMutexFailure = 13
+    }
+
+    enum MhThreadFreezeMethod
+    {
+        /// <summary>
+        /// The original MinHook method, using CreateToolhelp32Snapshot. Documented
+        /// and supported on all Windows versions, but very slow and less reliable.
+        /// </summary>
+        Original = 0,
+
+        /// <summary>
+        /// A much faster and more reliable, but undocumented method, using
+        /// NtGetNextThread. Supported since Windows Vista, on older versions falls
+        /// back to MH_ORIGINAL.
+        /// </summary>
+        FastUndocumented = 1,
+
+        /// <summary>
+        /// Threads are not suspended and instruction pointer registers are not
+        /// adjusted. Don't use this method unless you understand the implications
+        /// and know that it's safe.
+        /// </summary>
+        NoneUnsafe = 2
     }
 
     internal static class Native
@@ -28,6 +52,9 @@ namespace MinHook
 
         [DllImport("minhook", EntryPoint = "MH_Uninitialize", CallingConvention = CallingConvention.StdCall, ExactSpelling = true)]
         public static extern MinHookStatus Uninitialize();
+
+        [DllImport("minhook", EntryPoint = "MH_SetThreadFreezeMethod", CallingConvention = CallingConvention.StdCall, ExactSpelling = true)]
+        public static extern MinHookStatus SetThreadFreezeMethod(MhThreadFreezeMethod method);
 
         [DllImport("minhook", EntryPoint = "MH_CreateHook", CallingConvention = CallingConvention.StdCall, ExactSpelling = true)]
         public static extern MinHookStatus CreateHook(IntPtr pTarget, IntPtr pDetour, out IntPtr ppOriginal);
