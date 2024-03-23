@@ -65,7 +65,7 @@ public class Hook<T> where T : Delegate
 
     public void Enable()
     {
-        var status = Native.SetThreadFreezeMethod(MhThreadFreezeMethod.NoneUnsafe);
+        var status = Native.SetThreadFreezeMethod(MhThreadFreezeMethod.FastUndocumented);
         if (status != MinHookStatus.Ok)
         {
             MinHookException.Throw(status);
