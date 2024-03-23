@@ -14,11 +14,11 @@ jobs:
         rid:
           [
             win-x64,
-            # win-x86,
+            win-x86,
           ]
         include:
-          - { os: windows-latest, rid: win-x64 }
-          # - { os: ubuntu-latest, rid: win-x86 }
+          - { os: ubuntu-latest, rid: win-x64 }
+          - { os: ubuntu-latest, rid: win-x86 }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
