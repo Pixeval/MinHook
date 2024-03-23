@@ -2,8 +2,8 @@
     <PropertyGroup>
         <OutputPath>bin\$(Configuration)\$(RuntimeIdedntifier)</OutputPath>
         <DefineConstants Condition=" '$(RuntimeIdedntifier)' == 'win-x64' ">$(DefineConstants);_M_X64;__i386__</DefineConstants>
-        <DefineConstants Condition=" '$(RuntimeIdedntifier)' == 'win-x86' ">$(DefineConstants);_M_IX86;__x86_64__</DefineConstants>
         <NoWarn>$(NoWarn);G56935CCE;GA203EE3F</NoWarn>
+        <UseMicrosoftAbi>true</UseMicrosoftAbi>
     </PropertyGroup>
     <ItemGroup>
         <IncludeDirectory Include="src/include"></IncludeDirectory>
