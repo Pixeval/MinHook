@@ -145,9 +145,10 @@ internal class HooksGenerator : IIncrementalGenerator
                                 MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
                                     IdentifierName("global::MinHook.LibraryLoadingMonitor"),
                                     IdentifierName("LibraryLoaded")), IdentifierName("LazyEnable"))))
-                            .AddStatements(IfStatement(
-                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                                    IdentifierName("global::MinHook.LibraryLoadingMonitor"), IdentifierName("Enabled")),
+                            .AddStatements(IfStatement(PrefixUnaryExpression(SyntaxKind.LogicalNotExpression,
+                                    MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                        IdentifierName("global::MinHook.LibraryLoadingMonitor"),
+                                        IdentifierName("Enabled"))),
                                 ExpressionStatement(InvocationExpression(MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     IdentifierName("global::MinHook.LibraryLoadingMonitor"),
