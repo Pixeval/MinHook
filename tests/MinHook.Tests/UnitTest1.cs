@@ -14,8 +14,17 @@ public class UnitTest1
     public void Test1()
     {
         TestLazyHook.Enable();
-        Assert.Equal(0u,GetTickCount());
+        Assert.Equal(0u, GetTickCount());
         TestLazyHook.Disable();
-        Assert.NotEqual(0u,GetTickCount());
+        Assert.NotEqual(0u, GetTickCount());
+    }
+
+    [Fact]
+    public async Task Test2()
+    {
+        SslHook.Enable();
+        DnsHook.Enable();
+        var httpClient = new HttpClient();
+        await httpClient.GetStringAsync("https://pixiv.net/artworks/101648429");
     }
 }

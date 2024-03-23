@@ -15,7 +15,7 @@ public delegate uint GetTickCountDelegate();
 
 internal partial class TestLazyHook
 {
-    private static partial uint Detour()
+    private static unsafe partial uint Detour()
     {
         return 0;
     }

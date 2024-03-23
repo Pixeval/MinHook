@@ -105,7 +105,7 @@ internal class HooksGenerator : IIncrementalGenerator
                 var delegateInvokeMethod = generationContext.TargetDelegateType.DelegateInvokeMethod;
                 Debug.Assert(delegateInvokeMethod is not null);
                 return MethodDeclaration(IdentifierName(delegateInvokeMethod!.ReturnType.ToString()), "Detour")
-                    .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.PartialKeyword))
+                    .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.UnsafeKeyword), Token(SyntaxKind.PartialKeyword))
                     .AddParameterListParameters(delegateInvokeMethod.Parameters.Select(parameter => parameter.ToSyntax()).ToArray())
                     .WithSemicolonToken(Token(SyntaxKind.SemicolonToken));
             }
@@ -126,7 +126,7 @@ internal class HooksGenerator : IIncrementalGenerator
             static MethodDeclarationSyntax EnableMethodDeclaration(HookGeneratorContext generatorContext)
             {
                 return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "Enable")
-                    .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
+                    .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.UnsafeKeyword), Token(SyntaxKind.StaticKeyword))
                     .AddBodyStatements(IfStatement(
                         PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, IdentifierName("Enabled")), IfStatement(
                                 InvocationExpression(MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
@@ -177,7 +177,7 @@ internal class HooksGenerator : IIncrementalGenerator
             static MethodDeclarationSyntax LazyEnableMethodDeclaration(HookGeneratorContext generatorContext)
             {
                 return MethodDeclaration(PredefinedType(Token(SyntaxKind.VoidKeyword)), "LazyEnable")
-                    .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.StaticKeyword))
+                    .AddModifiers(Token(SyntaxKind.PrivateKeyword), Token(SyntaxKind.UnsafeKeyword), Token(SyntaxKind.StaticKeyword))
                     .AddParameterListParameters(
                         Parameter(Identifier("sender")).WithType(PredefinedType(Token(SyntaxKind.ObjectKeyword))),
                         Parameter(Identifier("args"))
@@ -202,7 +202,11 @@ internal class HooksGenerator : IIncrementalGenerator
                                             Argument(IdentifierName("Detour"))))))
                             .AddStatements(ExpressionStatement(InvocationExpression(MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
-                                IdentifierName("Enable")))))));
+                                IdentifierName("Enable")))))
+                            .AddStatements(ExpressionStatement(AssignmentExpression(SyntaxKind.SubtractAssignmentExpression,
+                                MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                    IdentifierName("global::MinHook.LibraryLoadingMonitor"),
+                                    IdentifierName("LibraryLoaded")), IdentifierName("LazyEnable"))))));
             }
 
             static MethodDeclarationSyntax DisableMethodDeclaration()
@@ -211,11 +215,7 @@ internal class HooksGenerator : IIncrementalGenerator
                     .AddModifiers(Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword))
                     .AddBodyStatements(ExpressionStatement(InvocationExpression(MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression, IdentifierName("_hook"),
-                        IdentifierName("Disable")))))
-                    .AddBodyStatements(ExpressionStatement(AssignmentExpression(SyntaxKind.SubtractAssignmentExpression,
-                        MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
-                            IdentifierName("global::MinHook.LibraryLoadingMonitor"),
-                            IdentifierName("LibraryLoaded")), IdentifierName("LazyEnable"))));
+                        IdentifierName("Disable")))));
             }
         }
 
