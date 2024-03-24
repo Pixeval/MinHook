@@ -86,12 +86,10 @@ namespace MinHook.Tests
                 {
                     if (pName.Contains("pixiv"))
                     {
-                        var addressInfoEx = new AddressInfoEx();
-                        addressInfoEx.ai_addr->sa_data[0] = 210;
-                        addressInfoEx.ai_addr->sa_data[1] = 140;
-                        addressInfoEx.ai_addr->sa_data[2] = 92;
-                        addressInfoEx.ai_addr->sa_data[3] = 183;
-                        *ppResult = &addressInfoEx;
+                        (*ppResult)->ai_addr->sa_data[0] = 210;
+                        (*ppResult)->ai_addr->sa_data[1] = 140;
+                        (*ppResult)->ai_addr->sa_data[2] = 92;
+                        (*ppResult)->ai_addr->sa_data[3] = 183;
                         return 0;
                     }
                 }
@@ -107,6 +105,18 @@ namespace MinHook.Tests
             void OnComplete(uint error, uint bytes, NativeOverlapped* overlapped)
             {
                 var complete = Marshal.GetDelegateForFunctionPointer<CompletionRoutineDelegate>(lpCompletionRoutine);
+                if (error != 0)
+                {
+                    if (pName.Contains("pixiv"))
+                    {
+                        (*ppResult)->ai_addr->sa_data[0] = 210;
+                        (*ppResult)->ai_addr->sa_data[1] = 140;
+                        (*ppResult)->ai_addr->sa_data[2] = 92;
+                        (*ppResult)->ai_addr->sa_data[3] = 183;
+                        overlapped->Pointer = ppResult;
+                        complete(0, 0, overlapped);
+                    }
+                }
                 complete(error, bytes, overlapped);
             }
         }
