@@ -3,7 +3,7 @@ using MinHook.Attributes;
 
 namespace MinHook.Tests
 {
-    [StaticLazyHook<InitializeSecurityContextWDelegate>("schannel", "InitializeSecurityContextW")]
+    [StaticLazyHook<InitializeSecurityContextWDelegate>("sspicli", "InitializeSecurityContextW")]
     internal partial class SslHook
     {
         [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]

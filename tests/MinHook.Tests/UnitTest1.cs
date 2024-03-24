@@ -22,6 +22,7 @@ public class UnitTest1
     [Fact]
     public async Task Test2()
     {
+        //PInvokeHook.Enable();
         SslHook.Enable();
         DnsHook.Enable();
         var httpClient = new HttpClient();

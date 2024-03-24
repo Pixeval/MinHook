@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -18,10 +20,13 @@ namespace MinHook.Tests
             IntPtr hints,
             AddressInfoEx** ppResult,
             IntPtr timeout,
-            IntPtr lpOverlapped,
+            NativeOverlapped* lpOverlapped,
             IntPtr lpCompletionRoutine,
             IntPtr* lpHandle
         );
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        private unsafe delegate void CompletionRoutineDelegate(uint error, uint bytes, NativeOverlapped* overlapped);
 
         [Flags]
         internal enum AddressInfoHints
@@ -50,31 +55,60 @@ namespace MinHook.Tests
             internal IntPtr ai_provider;     // Unused ptr to the namespace provider guid
             internal AddressInfoEx* ai_next; // Next structure in linked list
         }
-
+        [DebuggerDisplay("{DebuggerDisplay(),nq}")]
         [StructLayout(LayoutKind.Sequential)]
         internal unsafe struct SockAddr
         {
             internal AddressFamily sa_family;
 
-            internal fixed byte sa_data[14];
+            public fixed byte sa_data[14];
+
+            private string DebuggerDisplay() => $"{sa_data[0]}.{sa_data[1]}.{sa_data[2]}.{sa_data[3]}.{sa_data[4]}.{sa_data[5]}.{sa_data[6]}.{sa_data[7]}.{sa_data[8]}.{sa_data[9]}.{sa_data[10]}.{sa_data[11]}.{sa_data[12]}.{sa_data[13]}";
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct NativeOverlapped
+        {
+            public IntPtr InternalLow;
+            public IntPtr InternalHigh;
+            public unsafe AddressInfoEx** Pointer;
+            public IntPtr EventHandle;
         }
 
         private static unsafe partial int Detour(string pName, IntPtr pServiceName, int dwNameSpace, IntPtr lpNspId, IntPtr hints, AddressInfoEx** ppResult,
-            IntPtr timeout, IntPtr lpOverlapped, IntPtr lpCompletionRoutine, IntPtr* lpHandle)
+            IntPtr timeout, NativeOverlapped* lpOverlapped, IntPtr lpCompletionRoutine, IntPtr* lpHandle)
         {
-            var result = Original(pName, pServiceName, dwNameSpace, lpNspId, hints, ppResult, timeout, lpOverlapped,
-                lpCompletionRoutine, lpHandle);
-            if (result != 0)
+            if (lpOverlapped == null)
             {
-                if (pName.Contains("pixiv"))
+                int result = Original(pName, pServiceName, dwNameSpace, lpNspId, hints, ppResult, timeout, lpOverlapped,
+                    lpCompletionRoutine, lpHandle);
+                if (result != 0)
                 {
-                    var addressInfoEx = new AddressInfoEx();
-                    
-                    *ppResult = &addressInfoEx;
+                    if (pName.Contains("pixiv"))
+                    {
+                        var addressInfoEx = new AddressInfoEx();
+                        addressInfoEx.ai_addr->sa_data[0] = 210;
+                        addressInfoEx.ai_addr->sa_data[1] = 140;
+                        addressInfoEx.ai_addr->sa_data[2] = 92;
+                        addressInfoEx.ai_addr->sa_data[3] = 183;
+                        *ppResult = &addressInfoEx;
+                        return 0;
+                    }
                 }
+                return result;
             }
-            return result;
+            else
+            {
+                int result = Original(pName, pServiceName, dwNameSpace, lpNspId, hints, ppResult, timeout, lpOverlapped,
+                    Marshal.GetFunctionPointerForDelegate<CompletionRoutineDelegate>(OnComplete), lpHandle);
+                return result;
+            }
 
+            void OnComplete(uint error, uint bytes, NativeOverlapped* overlapped)
+            {
+                var complete = Marshal.GetDelegateForFunctionPointer<CompletionRoutineDelegate>(lpCompletionRoutine);
+                complete(error, bytes, overlapped);
+            }
         }
     }
 }
