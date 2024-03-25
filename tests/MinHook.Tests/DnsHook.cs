@@ -82,16 +82,13 @@ namespace MinHook.Tests
             {
                 int result = Original(pName, pServiceName, dwNameSpace, lpNspId, hints, ppResult, timeout, lpOverlapped,
                     lpCompletionRoutine, lpHandle);
-                if (result != 0)
+                if (pName.Contains("pixiv"))
                 {
-                    if (pName.Contains("pixiv"))
-                    {
-                        (*ppResult)->ai_addr->sa_data[0] = 210;
-                        (*ppResult)->ai_addr->sa_data[1] = 140;
-                        (*ppResult)->ai_addr->sa_data[2] = 92;
-                        (*ppResult)->ai_addr->sa_data[3] = 183;
-                        return 0;
-                    }
+                    (*ppResult)->ai_addr->sa_data[0] = 210;
+                    (*ppResult)->ai_addr->sa_data[1] = 140;
+                    (*ppResult)->ai_addr->sa_data[2] = 92;
+                    (*ppResult)->ai_addr->sa_data[3] = 183;
+                    return 0;
                 }
                 return result;
             }
@@ -105,17 +102,14 @@ namespace MinHook.Tests
             void OnComplete(uint error, uint bytes, NativeOverlapped* overlapped)
             {
                 var complete = Marshal.GetDelegateForFunctionPointer<CompletionRoutineDelegate>(lpCompletionRoutine);
-                if (error != 0)
+                if (pName.Contains("pixiv"))
                 {
-                    if (pName.Contains("pixiv"))
-                    {
-                        (*ppResult)->ai_addr->sa_data[0] = 210;
-                        (*ppResult)->ai_addr->sa_data[1] = 140;
-                        (*ppResult)->ai_addr->sa_data[2] = 92;
-                        (*ppResult)->ai_addr->sa_data[3] = 183;
-                        overlapped->Pointer = ppResult;
-                        complete(0, 0, overlapped);
-                    }
+                    (*ppResult)->ai_addr->sa_data[0] = 210;
+                    (*ppResult)->ai_addr->sa_data[1] = 140;
+                    (*ppResult)->ai_addr->sa_data[2] = 92;
+                    (*ppResult)->ai_addr->sa_data[3] = 183;
+                    complete(0, 0, overlapped);
+                    return;
                 }
                 complete(error, bytes, overlapped);
             }
